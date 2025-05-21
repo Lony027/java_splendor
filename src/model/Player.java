@@ -18,10 +18,13 @@ public class Player {
     this.playerCards = new ArrayList<Card>();
   }
 
-  public void buyCard(Card card) {
+  public TokenCollection buyCard(Card card) {
     Objects.requireNonNull(card);
-    playerTokens.subCollection(card.price());
+    
+    var newPrice = TokenCollection.discount(card.price(), bonus());    
+    playerTokens.subCollection(newPrice);
     playerCards.add(card);
+    return newPrice;
   }
 
   public void addToken(TokenCollection tokenToAdd) {

@@ -82,7 +82,8 @@ public class Board {
     if (card == null) {
       throw new IllegalArgumentException("No card at position " + index);
     }
-    p.buyCard(card);
+    var newPrice = p.buyCard(card);
+    tokenBank.addCollection(newPrice);
     onBoardCards.remove(index);
     drawOneCard();
   }

@@ -49,7 +49,7 @@ public class GameLoop {
     
     var playersListDTO = new ArrayList<PlayerDTO>();
     for (var p : playersList) {
-      playersListDTO.add(new PlayerDTO(p.name(), p.prestige(), p.playerTokens().toString()));
+      playersListDTO.add(new PlayerDTO(p.name(), p.prestige(), p.playerTokens().toString(), p.bonus().toString()));
     }
     var tokenBankDTO = new TokenCollectionDTO(board.tokenBankSummary());
     var cardsLeft = board.cardsStackLeft();
@@ -58,7 +58,7 @@ public class GameLoop {
       onBoardDTO.put(c.getKey(), new CardDTO(c.getValue().toString()));
     }
     var activePlayerDTO = new PlayerDTO(activePlayer.name(), activePlayer.prestige(),
-        activePlayer.playerTokens().toString());
+        activePlayer.playerTokens().toString(), activePlayer.bonus().toString());
     TUITurn.printTurn(playersListDTO, tokenBankDTO, cardsLeft, onBoardDTO,
         activePlayerDTO);
   }

@@ -47,6 +47,18 @@ public class TokenCollection {
     }
     tokens.merge(token, value, Integer::sum);
   }
+  
+  public static TokenCollection discount(TokenCollection originalPrice, TokenCollection toSub) {
+      Objects.requireNonNull(originalPrice);
+      Objects.requireNonNull(toSub);
+
+      var newMap = new EnumMap<>(originalPrice.tokens());
+      
+      toSub.tokens().forEach((key, toSubValue) -> {
+        newMap.put(key, Math.max(newMap.get(key) - toSubValue, 0));
+      });
+      return new TokenCollection(newMap);
+  }
 
   public void subCollection(TokenCollection tokensToSub) {
     Objects.requireNonNull(tokensToSub);

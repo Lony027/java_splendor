@@ -66,6 +66,7 @@ public class TUITurn {
       sb.append(p.name()).append(" : \n");
       sb.append("\t - Prestige : ").append(p.prestige()).append("\n");
       sb.append("\t - Gems : ").append(p.tokenSummary()).append("\n");
+      sb.append("\t - Bonus : ").append(p.bonusSummary()).append("\n");
     }
     return sb.toString();
   }
