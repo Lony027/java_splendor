@@ -1,11 +1,12 @@
 package controller.application;
 
-import controller.GameLoop;
+import controller.Controller;
 
 public class Main {
 
   public static void main(String[] args) {
-    GameLoop.gameLoop();
+    var controller = Controller.controllerFactory();
+    controller.gameLoop();
   }
 
 }

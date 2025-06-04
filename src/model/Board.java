@@ -1,45 +1,118 @@
 package model;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import model.utils.CardLevel;
 import model.utils.CardReader;
-import java.nio.file.Path;
+import model.utils.Phase;
 import model.utils.Token;
+import java.nio.file.Path;
 
 public class Board {
 
-  // Soutenance : Would an ArrayList be enough ?
-  private final LinkedList<Card> cardsStack;
-  private final HashMap<Integer, Card> onBoardCards;
-  private final TokenCollection tokenBank;
 
-  public Board(int playerCount, Path path) {
-    Objects.requireNonNull(path);
+  // TODO: if no more cards end game
+  // TODO: Use an arraylist for the cards ?
+  private final HashMap<CardLevel, LinkedList<Card>> cardDecks;
+  private final HashMap<CardLevel, HashMap<Integer, Card>> cards;
+  private final TokenCollection bank;
+  private final ArrayList<Noble> nobles;
+  // TODO: Maybe a Set<> instead
+  private final List<Player> playerList;
+
+
+  public Board(HashMap<CardLevel, LinkedList<Card>> cardDecks,
+      HashMap<CardLevel, HashMap<Integer, Card>> cards, TokenCollection bank,
+      ArrayList<Noble> nobles, List<Player> playerList) {
+    Objects.requireNonNull(cardDecks);
+    Objects.requireNonNull(cards);
+    Objects.requireNonNull(bank);
+    Objects.requireNonNull(nobles);
+    Objects.requireNonNull(playerList);
+    if (playerList.size() < 2 || playerList.size() > 4) {
+      throw new IllegalArgumentException("Player list must contain from 2 to 4 players");
+    }
+    this.cardDecks = cardDecks;
+    this.cards = cards;
+    this.bank = bank;
+    this.nobles = nobles;
+    this.playerList = playerList;
+    // TODO: Do this in the factory ??
+    for (var cardLevel : cardDecks.keySet()) {
+      drawFourCards(cardLevel);
+    }
+  }
+
+  private static List<Noble> shuffledGoodNumberNobles(List<Noble> nobles, int playerCount) {
+    Collections.shuffle(nobles);
+    return nobles.subList(0, playerCount + 1);
+  }
+
+  public static Board factory(int playerCount, Path cardPath, Path noblePath, Phase phase,
+      List<Player> playersList) {
+    Objects.requireNonNull(cardPath);
+    Objects.requireNonNull(noblePath);
     if (playerCount < 2 || playerCount > 4) {
       throw new IllegalArgumentException("Player count must be between 2 and 4 players");
     }
 
     try {
-      var cards = CardReader.loadCards(path);
-      cardsStack = cards;
-      shuffleCards();
+      var cardStacks = CardReader.loadCards(cardPath);
+      shuffle(cardStacks);
+
+      var onBoardNobles = new ArrayList<Noble>();
+      if (phase != Phase.ONE) {
+        var allNobles = CardReader.loadNobles(noblePath);
+        onBoardNobles.addAll(shuffledGoodNumberNobles(allNobles, playerCount));
+      }
+
+      var onBoardCards = new HashMap<CardLevel, HashMap<Integer, Card>>();
+      for (var availableLevel : cardStacks.keySet()) {
+        onBoardCards.put(availableLevel, new HashMap<Integer, Card>());
+      }
+
+      var tokenBank = createTokenBank(playerCount);
+
+      return new Board(cardStacks, onBoardCards, tokenBank, onBoardNobles, playersList);
+
     } catch (IOException e) {
       throw new IllegalArgumentException(
           "Failed to load cards for board initialization, try another path");
     }
-
-    onBoardCards = new HashMap<>();
-    drawFourCards();
-    tokenBank = createTokenBankByPlayerCount(playerCount);
   }
 
-  public void playerTakeTwoGems(Player p, List<Token> tokens) {
+  public void playerReserveCard(Player p, int index, CardLevel cardLevel) {
+    Objects.requireNonNull(p);
+    Objects.checkIndex(index, 4);
+
+    var card = getCard(cards, index, cardLevel);
+    p.reserve(card);
+    var bankHasGold = bank.tokensByColor(Token.GOLD) > 0;
+    if (bankHasGold) {
+      bank.sub(Token.GOLD, 1);
+      p.tokens().add(Token.GOLD, 1);
+    }
+    removeCard(cards, index, cardLevel);
+    drawOneCard(cardLevel);
+  }
+
+  public List<Noble> noblesPlayerCanClaim(Player player) {
+    Objects.requireNonNull(player);
+    return nobles.stream().filter(n -> player.canClaimNoble(n)).toList();
+  }
+
+  // TODO: Do we need to check if there's any gold token in the list ?
+  public void playerTakeTwoTokens(Player p, List<Token> tokens) {
     Objects.requireNonNull(p);
     Objects.requireNonNull(tokens);
     if (tokens.size() != 2) {
@@ -51,14 +124,14 @@ public class Board {
     }
 
     Token tokenColor = tokens.get(0);
-    if (tokenBank.tokensByColor(tokenColor) < 4) {
+    if (bank.tokensByColor(tokenColor) < 4) {
       throw new IllegalArgumentException("Not enough token to pick two");
     }
-    tokenBank.sub(tokenColor, 2);
-    p.addToken(new TokenCollection(tokens));
+    bank.sub(tokenColor, 2);
+    p.tokens().addCollection(TokenCollection.fromList(tokens));
   }
 
-  public void playerTakeThreeGems(Player p, List<Token> tokens) {
+  public void playerTakeThreeTokens(Player p, List<Token> tokens) {
     Objects.requireNonNull(tokens);
     Objects.requireNonNull(p);
     if (tokens.size() != 3) {
@@ -70,62 +143,136 @@ public class Board {
       throw new IllegalArgumentException("If you pick three tokens, they must be differents");
     }
 
-    var tokenCollection = new TokenCollection(tokens);
-    tokenBank.subCollection(tokenCollection);
-    p.addToken(tokenCollection);
+    var tokenCollection = TokenCollection.fromList(tokens);
+    bank.subCollection(tokenCollection);
+    p.tokens().addCollection(tokenCollection);
   }
-  
-  public void buyCard(Player p, int index) {
-    Objects.requireNonNull(p);
+
+  public void playerGivesBackToken(Player player, TokenCollection tokens) {
+    Objects.requireNonNull(player);
+    Objects.requireNonNull(tokens);
+
+    // TODO: Is this check overkill ?
+    // if (player.tokens().total() + bank.total() > createTokenBank(playerList.size()).total()) {
+    // throw new IllegalArgumentException("Player gave back too much tokens");
+    // }
+
+    player.tokens().subCollection(tokens);
+    bank.addCollection(tokens);
+  }
+
+  public void buyCard(Player player, int index, CardLevel cardLevel) {
+    Objects.requireNonNull(player);
     Objects.checkIndex(index, 4);
-    var card = onBoardCards.get(index);
-    if (card == null) {
-      throw new IllegalArgumentException("No card at position " + index);
-    }
-    var newPrice = p.buyCard(card);
-    tokenBank.addCollection(newPrice);
-    onBoardCards.remove(index);
-    drawOneCard();
+
+    var card = getCard(cards, index, cardLevel);
+    var priceAfterDiscount = player.buy(card);
+    bank.addCollection(priceAfterDiscount);
+    removeCard(cards, index, cardLevel);
+    drawOneCard(cardLevel);
   }
 
-  public void drawOneCard() {
-    // NB : OptionalInt sans boxed, Optional<Integer> avec boxed
-    var nullCardIndex = IntStream.range(0, 4).filter(i -> onBoardCards.get(i) == null).findFirst();
+  public void buyReserved(Player player, int index) {
+    Objects.requireNonNull(player);
+    Objects.checkIndex(index, 3);
+
+    var priceAfterDiscount = player.buyReserved(index);
+    bank.addCollection(priceAfterDiscount);
+  }
+
+  public TokenCollection tokenBank() {
+    return bank;
+  }
+
+  public Map<CardLevel, Integer> cardDecksSizes() {
+    return cardDecks.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
+  }
+
+  public Map<CardLevel, Map<Integer, Card>> cards() {
+    return Map.copyOf(cards.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, entry -> Map.copyOf(entry.getValue()))));
+  }
+
+  public List<Noble> nobles() {
+    return List.copyOf(nobles);
+  }
+
+  public List<Player> playerList() {
+    return List.copyOf(playerList);
+  }
+
+  public Optional<Player> winner() {
+    var winners = playerList.stream().filter(p -> p.prestige() >= 15).toList();
+    if (winners.isEmpty()) {
+      return Optional.empty();
+    }
+    var maxPrestige = winners.stream().mapToInt(Player::prestige).max();
+    winners = playerList.stream().filter(p -> p.prestige() == maxPrestige.getAsInt()).toList();
+    if (winners.size() == 1) {
+      return Optional.of(winners.get(0));
+    } else {
+      // TODO: What happens when there's a tie ?
+      return winners.stream().min(Comparator.comparingInt(Player::playerCardsSize));
+    }
+
+    // TODO:
+    // return playersList.stream().filter(p -> p.prestige() >= 15)
+    // .collect(Collectors.groupingBy(Player::prestige, Collectors.toList())).entrySet().stream()
+    // .max(Map.Entry.comparingByKey()).map(Map.Entry::getValue)
+    // .flatMap(winners -> winners.size() == 1 ? Optional.of(winners.get(0))
+    // : winners.stream().min(Comparator.comparingInt(Player::playerCardsSize)));
+  }
+
+  private void drawOneCard(CardLevel cardLevel) {
+    var nullCardIndex =
+        IntStream.range(0, 4).filter(i -> cards.get(cardLevel).get(i) == null).findFirst();
     if (nullCardIndex.isEmpty()) {
-      throw new IllegalArgumentException("No null card on board"); // mauvaise exception
+      throw new IllegalArgumentException("Cannot draw a card, the level is already filled");
     }
-    // Soutenance : What to do when the stack is empty ? Is it even possible ?
-    var topCard = cardsStack.pop();
-    onBoardCards.put(nullCardIndex.getAsInt(), topCard);
+    // TODO: Manage when empty !
+    var topCard = cardDecks.get(cardLevel).pop();
+    cards.get(cardLevel).put(nullCardIndex.getAsInt(), topCard);
   }
 
-  private void drawFourCards() {
+  private void drawFourCards(CardLevel cardLevel) {
     for (int i = 0; i < 4; i++) {
-      drawOneCard();
+      drawOneCard(cardLevel);
     }
   }
 
-  private void shuffleCards() {
-    Collections.shuffle(cardsStack);
+  private static void shuffle(HashMap<CardLevel, LinkedList<Card>> cardDecks) {
+    for (var deck : cardDecks.values()) {
+      Collections.shuffle(deck);
+    }
   }
 
-  public String tokenBankSummary() {
-    return tokenBank.toString();
+  private static Card removeCard(HashMap<CardLevel, HashMap<Integer, Card>> onBoardCards, int index,
+      CardLevel cardLevel) {
+    Objects.checkIndex(index, 4);
+    return onBoardCards.get(cardLevel).remove(index);
   }
 
-  public int cardsStackLeft() {
-    return cardsStack.size();
+  private static Card getCard(HashMap<CardLevel, HashMap<Integer, Card>> onBoardCards, int index,
+      CardLevel cardLevel) {
+    Objects.checkIndex(index, 4);
+    var cardStack = onBoardCards.get(cardLevel);
+    if (cardStack == null) {
+      throw new IllegalArgumentException("No card at level : " + cardLevel.name());
+    }
+    var card = cardStack.get(index);
+    if (card == null) {
+      throw new IllegalArgumentException(
+          "No card at level : " + cardLevel.name() + " and position " + index);
+    }
+    return card;
   }
 
-  public Map<Integer, Card> onBoardCards() {
-    return Map.copyOf(onBoardCards);
-  }
-
-  private TokenCollection createTokenBankByPlayerCount(int playerCount) {
+  private static TokenCollection createTokenBank(int playerCount) {
     return switch (playerCount) {
-      case 2 -> TokenCollection.createFilledTokenCollection(4);
-      case 3 -> TokenCollection.createFilledTokenCollection(5);
-      case 4 -> TokenCollection.createFilledTokenCollection(7);
+      case 2 -> TokenCollection.createFilled(4);
+      case 3 -> TokenCollection.createFilled(5);
+      case 4 -> TokenCollection.createFilled(7);
       default -> throw new IllegalArgumentException(
           "Not enough, or too much players. This game is supposed to be played by 2 to 4 players ");
     };

@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +12,6 @@ public class TokenCollection {
 
   private final EnumMap<Token, Integer> tokens;
 
-  public TokenCollection() {
-    tokens = new EnumMap<>(
-        Map.of(Token.GREEN, 0, Token.BLUE, 0, Token.RED, 0, Token.WHITE, 0, Token.BLACK, 0));
-  }
-
   public TokenCollection(Map<Token, Integer> initTokens) {
     Objects.requireNonNull(initTokens);
     tokens = new EnumMap<>(initTokens);
@@ -23,17 +19,27 @@ public class TokenCollection {
       tokens.putIfAbsent(key, 0);
     }
   }
-  
-  public TokenCollection(List<Token> initTokens) {
-    Objects.requireNonNull(initTokens);
-    // @to-do: Stream version or at least find a more elegant way
-    var tokensToCreate = new EnumMap<>(
-        Map.of(Token.GREEN, 0, Token.BLUE, 0, Token.RED, 0, Token.WHITE, 0, Token.BLACK, 0));
-    for (var token : initTokens) {
-      var val = tokensToCreate.getOrDefault(token, 0);
-      tokensToCreate.put(token, val+1);
+
+  public static TokenCollection createEmpty() {
+    var tokenMap = Arrays.stream(Token.values()).collect(Collectors.toMap(i -> i, _ -> 0));
+    return new TokenCollection(tokenMap);
+  }
+
+  public static TokenCollection createFilled(int value) {
+    if (value < 0) {
+      throw new IllegalArgumentException("Value must be positive");
     }
-    tokens = tokensToCreate;
+    var tokenMap = Arrays.stream(Token.values()).collect(Collectors.toMap(i -> i, _ -> value));
+    return new TokenCollection(tokenMap);
+  }
+
+  public static TokenCollection fromList(List<Token> initTokens) {
+    Objects.requireNonNull(initTokens);
+    var tokenCollection = createEmpty();
+    for (var token : initTokens) {
+      tokenCollection.add(token, 1);
+    }
+    return tokenCollection;
   }
 
   public void addCollection(TokenCollection tokensToAdd) {
@@ -47,30 +53,44 @@ public class TokenCollection {
     }
     tokens.merge(token, value, Integer::sum);
   }
-  
-  public static TokenCollection discount(TokenCollection originalPrice, TokenCollection toSub) {
-      Objects.requireNonNull(originalPrice);
-      Objects.requireNonNull(toSub);
 
-      var newMap = new EnumMap<>(originalPrice.tokens());
-      
-      toSub.tokens().forEach((key, toSubValue) -> {
-        newMap.put(key, Math.max(newMap.get(key) - toSubValue, 0));
-      });
-      return new TokenCollection(newMap);
+  public int subCollectionJoker(TokenCollection tokensToSub, int jokerCount) {
+    Objects.requireNonNull(tokensToSub);
+    if (jokerCount < 0) {
+      throw new IllegalArgumentException("JokerCount must be positive");
+    }
+
+    var sumDeficit = tokensToSub.tokens().entrySet().stream()
+        .mapToInt(es -> tokens.get(es.getKey()) - es.getValue()).filter(es -> es < 0)
+        .map(diff -> -diff).sum();
+
+    var jokerTokenUsed = 0;
+    if (sumDeficit > jokerCount) {
+      throw new IllegalArgumentException("Not enough tokens including jokers");
+    }
+    jokerTokenUsed = sumDeficit;
+
+    tokensToSub.tokens().forEach((key, value) -> {
+      tokens.merge(key, -value, Integer::sum);
+    });
+    tokens.replaceAll((_, value) -> Math.max(value, 0));
+
+    return jokerTokenUsed;
+  }
+
+  public boolean canSubCollection(TokenCollection tokensToSub) {
+    Objects.requireNonNull(tokensToSub);
+    return !tokensToSub.tokens().entrySet().stream()
+        .anyMatch(entrySet -> tokens.get(entrySet.getKey()) - entrySet.getValue() < 0);
   }
 
   public void subCollection(TokenCollection tokensToSub) {
     Objects.requireNonNull(tokensToSub);
-    
-    // Soutenance : Is this a good solution ? Immutability ?
-    var isNotPossible = tokensToSub.tokens().entrySet().stream()
-        .anyMatch(entrySet -> tokens.get(entrySet.getKey()) - entrySet.getValue() < 0);
-    if (isNotPossible) {
+    var isSubPossible = canSubCollection(tokensToSub);
+    if (!isSubPossible) {
       throw new IllegalArgumentException("Not enough tokens");
     }
-    
-    // Soutenance : Choose this over for (:) ?
+
     tokensToSub.tokens().forEach((key, value) -> {
       tokens.merge(key, -value, Integer::sum);
     });
@@ -80,7 +100,7 @@ public class TokenCollection {
     if (value < 0) {
       throw new IllegalArgumentException("Value must be positive");
     }
-    
+
     var newValue = tokens.get(token) - value;
     if (newValue < 0) {
       throw new IllegalArgumentException("Not enough tokens");
@@ -88,9 +108,16 @@ public class TokenCollection {
     tokens.put(token, newValue);
   }
 
-  public static TokenCollection createFilledTokenCollection(int value) {
-    return new TokenCollection(Map.of(Token.GREEN, value, Token.BLUE, value, Token.RED, value,
-        Token.WHITE, value, Token.BLACK, value));
+  public static TokenCollection discount(TokenCollection originalPrice, TokenCollection toSub) {
+    Objects.requireNonNull(originalPrice);
+    Objects.requireNonNull(toSub);
+
+    var newMap = new EnumMap<>(originalPrice.tokens());
+
+    toSub.tokens().forEach((key, toSubValue) -> {
+      newMap.put(key, Math.max(newMap.get(key) - toSubValue, 0));
+    });
+    return new TokenCollection(newMap);
   }
 
   public Map<Token, Integer> tokens() {
