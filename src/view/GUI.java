@@ -1,20 +1,43 @@
 package view;
 
+import java.awt.Color;
 import java.util.List;
-import java.util.Map;
+import com.github.forax.zen.Application;
+import com.github.forax.zen.ApplicationContext;
 import controller.Action;
-import model.Card;
+import model.Board;
 import model.Noble;
 import model.Player;
-import model.TokenCollection;
 import model.utils.CardLevel;
 import model.utils.Token;
 
 public final class GUI implements View {
 
+  private final ApplicationContext context;
+
+  public GUI(ApplicationContext context) {
+    this.context = context;
+  }
+
+  @Override
+  public List<Player> promptPlayerNames() {
+    context.renderFrame(g2d -> {
+      g2d.setColor(Color.BLACK);
+
+      var screenInfo = context.getScreenInfo();
+
+
+
+      // g2d.fillRect(0, 0, screenInfo.width(), screenInfo.height());
+      g2d.fillRect(0, 0, 5, 5);
+    });
+    return List.of(new Player("hugo"));
+  }
+
+
+
   @Override
   public Action promptPlayerAction() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -45,31 +68,31 @@ public final class GUI implements View {
   @Override
   public void printWinner(String playerName) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void printException(Exception e) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void printWrongTokenFormat() {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void twoDifferentTokens() {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
-  public void printTurn(Player activePlayer) {
+  public void printTurn(Player activePlayer, Board board) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override

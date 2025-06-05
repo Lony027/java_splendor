@@ -1,11 +1,13 @@
 package controller;
 
+import java.awt.Color;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.BooleanSupplier;
+import com.github.forax.zen.Application;
 import model.Board;
 import model.Player;
 import model.TokenCollection;
@@ -19,18 +21,13 @@ public record Controller(Phase phase, Board board, View view) {
 
   // Pattern matching quand y'aura GUI/TUI
 
-  public static Controller controllerFactory() {
-    var scanner = new Scanner(System.in);
-    var phase = TUI.promptPhaseSelection(scanner);
-    var playersList = TUI.promptPlayerNames(scanner);
-    var cardPath = cardsPathByPhase(phase);
-    var noblePath = Paths.get("src", "model", "data", "nobles_phase_2.csv");
-    var board = Board.factory(playersList.size(), cardPath, noblePath, phase, List.copyOf(playersList));
 
-    View view = switch (phase) {
-      case Phase.ONE, Phase.TWO -> new TUI(scanner, phase, List.copyOf(playersList), board);
-      case Phase.THREE -> new GUI();
-    };
+
+  public static Controller controllerFactory(View view, Phase phase) {
+    var playersList = view.promptPlayerNames();
+    var cardPath = cardsPathByPhase(phase);
+    var noblePath = Path.of("src", "data", "nobles_phase_2.csv");
+    var board = Board.factory(playersList.size(), cardPath, noblePath, phase, List.copyOf(playersList));
     return new Controller(phase, board, view);
   }
 
@@ -40,7 +37,7 @@ public record Controller(Phase phase, Board board, View view) {
     Optional<Player> winner;
     do {
       for (var player : playerList) {
-        view.printTurn(player);
+        view.printTurn(player, board);
         repeatUntilTrue(() -> playTurn(player));
         repeatUntilTrue(() -> checkAfterTurn(player));
       }
@@ -161,10 +158,9 @@ public record Controller(Phase phase, Board board, View view) {
     var fileName = switch (phase) {
       case Phase.ONE -> "cards_phase_1.csv";
       case Phase.TWO -> "cards_phase_2.csv";
-      case Phase.THREE -> "cards_phase_3.csv";
+      case Phase.THREE -> "cards_phase_2.csv";
     };
-    // TODO: Only works in eclipse !!!!
-    return Path.of("src", "model", "data", fileName);
+    return Path.of("src", "data", fileName);
   }
 
 

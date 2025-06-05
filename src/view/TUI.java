@@ -20,13 +20,15 @@ import model.utils.CardLevel;
 import model.utils.Phase;
 import model.utils.Token;
 
-public record TUI(Scanner scanner, Phase phase, List<Player> playersList, Board board)
+public record TUI(Scanner scanner, Phase phase)
     implements View {
-
-  // trucs en attribut !!!!
-  // GERER LES INPUTS ICI !!!!!!!!!!!!!!!!!!!!!!!
-
-
+  
+  
+  
+  //
+  // TODO: CLEAN ICI!!!!!!!!!!!!!!!
+  // USE SUFFIX ET PREFIX DANS COLLECTORS.JOIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //
 
   public List<Token> promptGiveBackExtraTokens(int extra) {
     System.out.println("You have " + extra
@@ -85,9 +87,8 @@ public record TUI(Scanner scanner, Phase phase, List<Player> playersList, Board 
   }
 
   // List<Strin> puis on converti ??,
-  public static List<Player> promptPlayerNames(Scanner scanner) {
-    Objects.requireNonNull(scanner);
-
+  @Override
+  public List<Player> promptPlayerNames() {
     var playerCount = promptForValidInt(scanner, TUI::printAskHowMuchPlayer, i -> i >= 2 && i <= 4);
 
     // TODO: Check if there's already a player named like this, use a set ?
@@ -228,7 +229,7 @@ public record TUI(Scanner scanner, Phase phase, List<Player> playersList, Board 
     return nobles.stream().map(Card::toString).collect(Collectors.joining("\n"));
   }
 
-  public void printTurn(Player activePlayer) {
+  public void printTurn(Player activePlayer, Board board) {
     Objects.requireNonNull(activePlayer);
 
     System.out.println(cardsLeft(board.cardDecksSizes()));
@@ -238,7 +239,7 @@ public record TUI(Scanner scanner, Phase phase, List<Player> playersList, Board 
       System.out.println("On Board Nobles :\n" + nobleList(board.nobles()));
     }
     System.out.println(separator());
-    System.out.println(playerInfos(playersList, activePlayer));
+    System.out.println(playerInfos(board.playerList(), activePlayer));
     System.out.println(separator());
     System.out.println(playerAction(activePlayer));
   }

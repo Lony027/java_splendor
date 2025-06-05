@@ -20,6 +20,7 @@ import java.nio.file.Path;
 
 public class Board {
 
+  // TODO: ON MET REQUIRE NON NULL PARTOUT OU PAS ??
 
   // TODO: if no more cards end game
   // TODO: Use an arraylist for the cards ?
