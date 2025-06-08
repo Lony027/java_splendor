@@ -1,5 +1,6 @@
 package view;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -20,17 +22,14 @@ import model.utils.CardLevel;
 import model.utils.Phase;
 import model.utils.Token;
 
-public record TUI(Scanner scanner, Phase phase)
-    implements View {
-  
-  
-  
+public record TUI(Scanner scanner, Phase phase) implements View {
+
   //
   // TODO: CLEAN ICI!!!!!!!!!!!!!!!
   // USE SUFFIX ET PREFIX DANS COLLECTORS.JOIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //
 
-  public List<Token> promptGiveBackExtraTokens(int extra) {
+  public List<Token> promptGiveBackExtraTokens(Player p, int extra) {
     System.out.println("You have " + extra
         + " extra tokens, type the one you want to remove.\n Example: (green blue blue)");
     var userTypedTokens = readWords();
@@ -41,14 +40,13 @@ public record TUI(Scanner scanner, Phase phase)
     return tokenList;
   }
 
-
   public List<Token> promptTakeTokens() {
     System.out.println("Choose two tokens of the same color or three different");
     var stringTokenList = readWords();
     return stringTokenList.stream().map(Token::fromString).toList();
   }
 
-  public CardLevel promptCardLevel() {
+  private CardLevel promptCardLevel() {
     if (phase == Phase.ONE) {
       return CardLevel.ONE;
     } else {
@@ -57,9 +55,16 @@ public record TUI(Scanner scanner, Phase phase)
     }
   }
 
-  public int promptCardIndex() {
+  private int promptCardIndex() {
     System.out.println("Choose the card position (0-3)");
     return readInteger();
+  }
+
+  @Override
+  public Map.Entry<CardLevel, Integer> promptCardLevelIndex() {
+    var level = promptCardLevel();
+    var index = promptCardIndex();
+    return new AbstractMap.SimpleEntry<CardLevel, Integer>(level, index);
   }
 
   public int promptReservedCardIndex() {
@@ -67,7 +72,13 @@ public record TUI(Scanner scanner, Phase phase)
     return readInteger();
   }
 
-
+  @Override
+  public Entry<CardLevel, Integer> promptCardLevelIndexReserve() {
+    var level = promptCardLevel();
+    System.out.println("Choose the card position (0-2), (-1) for card stack");
+    var index = readInteger();
+    return new AbstractMap.SimpleEntry<CardLevel, Integer>(level, index);
+  }
 
   public Action promptPlayerAction() {
     var action = scanner.nextLine().trim().toLowerCase();
@@ -79,7 +90,6 @@ public record TUI(Scanner scanner, Phase phase)
       default -> throw new NumberFormatException();
     };
   }
-
 
   public static Phase promptPhaseSelection(Scanner scanner) {
     var phase = promptForValidInt(scanner, TUI::printChoosePhase, i -> i >= 1 || i <= 3);
@@ -104,7 +114,6 @@ public record TUI(Scanner scanner, Phase phase)
     return players;
   }
 
-
   /////////////////////////////////////////////////////
   ///
   ///UTILS UTILS UTILS
@@ -122,7 +131,6 @@ public record TUI(Scanner scanner, Phase phase)
   private List<String> readWords() {
     return Arrays.asList(scanner.nextLine().split("\\s+"));
   }
-
 
   public static int promptForValidInt(Scanner scanner, Runnable prompt,
       Predicate<Integer> validInput) {
@@ -164,14 +172,10 @@ public record TUI(Scanner scanner, Phase phase)
     }
   }
 
-
-
   /////////////////////////////////////////////////////
   ///
   /// /////////////////////////////////////////////////////
   /// /////////////////////////////////////////////////////
-
-
 
   // Enlever les truc pas statiques pour rien après
   public TUI {
@@ -197,20 +201,9 @@ public record TUI(Scanner scanner, Phase phase)
     System.out.println(playerName + " has won!");
   }
 
-
   public void printException(Exception e) {
     System.out.println(e.getMessage());
   }
-
-  public void printWrongTokenFormat() {
-    System.out.println(
-        "Wrong tokens formats, should be either : 'green', 'blue', 'red', 'white' or 'black'");
-  }
-
-  public void twoDifferentTokens() {
-    System.out.println("If you pick two tokens, they should be the same color");
-  }
-
 
   public static void printWrongFormat() {
     System.out.println("Wrong format, please try again");
@@ -220,11 +213,11 @@ public record TUI(Scanner scanner, Phase phase)
     System.out.println("Wrong format, please type a positive number");
   }
 
-
   // Maybe faire un <E>
   private String nobleList(List<Noble> nobles) {
     return nobles.stream().map(Noble::toString).collect(Collectors.joining("\n"));
   }
+
   private String cardList(List<Card> nobles) {
     return nobles.stream().map(Card::toString).collect(Collectors.joining("\n"));
   }
@@ -262,13 +255,11 @@ public record TUI(Scanner scanner, Phase phase)
         .collect(Collectors.joining("\n"));
   }
 
-
   private String oneLevelCard(Map<Integer, Card> onBoard) {
     // .boxed to convert to Stream<Integer> and be able to map it to String
     return IntStream.range(0, 4).boxed().map(i -> "\tpos " + i + ": " + onBoard.get(i))
         .collect(Collectors.joining("\n"));
   }
-
 
   private String onBoardCards(Map<CardLevel, Map<Integer, Card>> onBoard) {
     Objects.requireNonNull(onBoard);

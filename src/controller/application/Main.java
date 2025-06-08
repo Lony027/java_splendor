@@ -15,6 +15,9 @@ public class Main {
   public static void main(String[] args) {
     startGame();
     
+// Passer phase en argument !!!!
+    // Ouvrir une issue sur zen
+    
 //    Frame frame = new Frame("AWT Maximized Frame Test");
 //
 //    Label label = new Label("This frame should start maximized.", Label.CENTER);
@@ -57,7 +60,8 @@ public class Main {
         Application.run(Color.WHITE, context -> {
           View gui = new GUI(context);
           var controller = Controller.controllerFactory(gui, phase);
-//          controller.gameLoop();
+          controller.gameLoop();
+//          context.dispose(); //?????
         });
       }
     }

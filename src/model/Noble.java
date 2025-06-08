@@ -7,7 +7,7 @@ public record Noble(int prestige, TokenCollection bonusPrice, String name) {
   public Noble {
     Objects.requireNonNull(bonusPrice);
     if (prestige < 0) {
-      throw new IllegalArgumentException("Prestige must be positive");
+      throw new IllegalArgumentException("prestige must be positive");
     }
   }
 

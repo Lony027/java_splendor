@@ -20,10 +20,8 @@ import java.nio.file.Path;
 
 public class Board {
 
-  // TODO: ON MET REQUIRE NON NULL PARTOUT OU PAS ??
-
   // TODO: if no more cards end game
-  // TODO: Use an arraylist for the cards ?
+
   private final HashMap<CardLevel, LinkedList<Card>> cardDecks;
   private final HashMap<CardLevel, HashMap<Integer, Card>> cards;
   private final TokenCollection bank;
@@ -92,19 +90,38 @@ public class Board {
     }
   }
 
-  public void playerReserveCard(Player p, int index, CardLevel cardLevel) {
+  public void playerReserveCard(Player p, Map.Entry<CardLevel, Integer> entry) {
     Objects.requireNonNull(p);
-    Objects.checkIndex(index, 4);
+    Objects.requireNonNull(entry);
 
-    var card = getCard(cards, index, cardLevel);
+    var index = entry.getValue();
+    var cardLevel = entry.getKey();
+
+    if (index > 3 || index < -1) {
+      throw new IllegalArgumentException();
+    }
+
+    Card card;
+    if (index >= 0) {
+      card = getCard(cards, index, cardLevel);
+    } else {
+      if (cardDecks.get(cardLevel).size() == 0) {
+        throw new GameRuleException("Stack is empty");
+      }
+      card = cardDecks.get(cardLevel).pop();
+    }
+
     p.reserve(card);
     var bankHasGold = bank.tokensByColor(Token.GOLD) > 0;
     if (bankHasGold) {
       bank.sub(Token.GOLD, 1);
       p.tokens().add(Token.GOLD, 1);
     }
-    removeCard(cards, index, cardLevel);
-    drawOneCard(cardLevel);
+    if (index >= 0) {
+      removeCard(cards, index, cardLevel);
+      drawOneCard(cardLevel);
+    }
+
   }
 
   public List<Noble> noblesPlayerCanClaim(Player player) {
@@ -162,9 +179,14 @@ public class Board {
     bank.addCollection(tokens);
   }
 
-  public void buyCard(Player player, int index, CardLevel cardLevel) {
+  public void buyCard(Player player, Map.Entry<CardLevel, Integer> entry) {
     Objects.requireNonNull(player);
-    Objects.checkIndex(index, 4);
+    Objects.requireNonNull(entry);
+
+    var index = entry.getValue();
+    var cardLevel = entry.getKey();
+    Objects.requireNonNull(index);
+    Objects.requireNonNull(cardLevel);
 
     var card = getCard(cards, index, cardLevel);
     var priceAfterDiscount = player.buy(card);
@@ -179,6 +201,18 @@ public class Board {
 
     var priceAfterDiscount = player.buyReserved(index);
     bank.addCollection(priceAfterDiscount);
+  }
+  
+  public void playerClaimNoble(Player player, Noble noble) {
+    Objects.requireNonNull(player);
+    Objects.requireNonNull(noble);
+    
+    if (!nobles.contains(noble)) {
+      throw new IllegalArgumentException("Noble not in board");
+    }
+    
+    player.claimNoble(noble);
+    nobles.remove(noble);
   }
 
   public TokenCollection tokenBank() {

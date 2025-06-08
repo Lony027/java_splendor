@@ -48,7 +48,7 @@ public class Player {
   public void reserve(Card card) {
     Objects.requireNonNull(card);
     if (reservedCards.size() > 2) {
-      throw new IllegalStateException("No more than 3 reserved cards!");
+      throw new GameRuleException("You can't have more than 3 reserved cards");
     }
     reservedCards.add(card);
   }
@@ -64,7 +64,7 @@ public class Player {
   public void claimNoble(Noble noble) {
     Objects.requireNonNull(noble);
     if (!canClaimNoble(noble)) {
-      throw new IllegalArgumentException("Player does not enough bonus to claim noble");
+      throw new IllegalArgumentException(name + " cannot claim noble : " + noble.name());
     }
     nobles.add(noble);
   }
@@ -91,7 +91,8 @@ public class Player {
   }
 
   public TokenCollection bonus() {
-    var bonus = TokenCollection.createEmpty();
+//    var bonus = TokenCollection.createEmpty();
+    var bonus = TokenCollection.createFilled(4);
     for (var card : buyedCards) {
       bonus.add(card.bonus(), 1);
     }
@@ -110,7 +111,6 @@ public class Player {
     return buyedCards.size();
   }
 
-  // TODO: Hash could be based only on name, we should make sure there's the same player count
   @Override
   public int hashCode() {
     return Objects.hash(name, tokens, buyedCards, reservedCards, nobles);
