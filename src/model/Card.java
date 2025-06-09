@@ -1,8 +1,6 @@
 package model;
 
 import java.util.Objects;
-import model.utils.CardLevel;
-import model.utils.Token;
 
 public record Card(int prestige, TokenCollection price, Token bonus, CardLevel level) {
 

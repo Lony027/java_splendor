@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import controller.Action;
 import model.Board;
+import model.CardLevel;
 import model.Noble;
 import model.Player;
-import model.utils.CardLevel;
-import model.utils.Token;
+import model.Token;
 
 public sealed interface View permits GUI, TUI {
 
@@ -21,7 +21,7 @@ public sealed interface View permits GUI, TUI {
 
   public List<Token> promptTakeTokens();
 
-  public List<Player> promptPlayerNames();
+  public List<String> promptPlayerNames();
 
   public List<Token> promptGiveBackExtraTokens(Player player, int extra);
 

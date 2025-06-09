@@ -3,7 +3,7 @@ package controller.application;
 import java.awt.Color;
 import com.github.forax.zen.Application;
 import controller.Controller;
-import model.utils.Phase;
+import model.Phase;
 import view.GUI;
 import view.TUI;
 import view.View;

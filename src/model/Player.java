@@ -3,7 +3,6 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import model.utils.Token;
 
 public class Player {
 
@@ -13,11 +12,11 @@ public class Player {
   private final ArrayList<Card> reservedCards;
   private final ArrayList<Noble> nobles;
 
-  public Player(String name) {
+  public Player(String name, boolean hasGold) {
     Objects.requireNonNull(name);
 
     this.name = name;
-    this.tokens = TokenCollection.createEmpty();
+    this.tokens = TokenCollection.createEmpty(hasGold);
     this.buyedCards = new ArrayList<Card>();
     this.reservedCards = new ArrayList<Card>();
     this.nobles = new ArrayList<Noble>();
@@ -91,7 +90,7 @@ public class Player {
   }
 
   public TokenCollection bonus() {
-    var bonus = TokenCollection.createEmpty();
+    var bonus = TokenCollection.createEmpty(false);
     for (var card : buyedCards) {
       bonus.add(card.bonus(), 1);
     }

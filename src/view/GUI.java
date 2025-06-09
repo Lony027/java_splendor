@@ -21,11 +21,11 @@ import com.github.forax.zen.KeyboardEvent;
 import com.github.forax.zen.PointerEvent;
 import controller.Action;
 import model.Board;
+import model.CardLevel;
 import model.Noble;
+import model.Phase;
 import model.Player;
-import model.utils.CardLevel;
-import model.utils.Phase;
-import model.utils.Token;
+import model.Token;
 import view.elements.Box;
 import view.elements.CardElement;
 import view.elements.CardStack;
@@ -193,7 +193,7 @@ public final class GUI implements View {
   }
 
   @Override
-  public List<Player> promptPlayerNames() {
+  public List<String> promptPlayerNames() {
     displayPlayerNumber();
     var playerCountString = repeatUntilTrue(() -> {
       var element = waitForClickedElement();
@@ -406,9 +406,9 @@ public final class GUI implements View {
     render(frame);
   }
 
-  private List<Player> typePlayerList(int playerCount) {
+  private List<String> typePlayerList(int playerCount) {
     Consumer<Graphics2D> frame;
-    var playerList = new ArrayList<Player>();
+    var playerList = new ArrayList<String>();
     var menuLayout = new SimpleLayout(screenScaling.offsetX(50), screenScaling.offsetY(40),
         screenScaling.scaledWidth(35), screenScaling.scaledHeight(8));
     var typingLayout = new SimpleLayout(screenScaling.offsetX(50), screenScaling.offsetY(54),
@@ -427,7 +427,7 @@ public final class GUI implements View {
         var keyPressed = waitForKeyPress();
         if (keyPressed.equals(KeyboardEvent.Key.SPACE)) {
           if (!typed.isEmpty()) {
-            playerList.add(new Player(typed.toString()));
+            playerList.add(typed.toString());
             isTyping = false;
           }
         } else if (isAlphabet(keyPressed) && typed.length() < 10) {

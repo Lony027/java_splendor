@@ -6,8 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import model.Token;
 import model.TokenCollection;
-import model.utils.Token;
 import view.layout.BatchLayout;
 import view.layout.SimpleLayout;
 
@@ -52,7 +52,8 @@ public record TokenElement(Token token, int tokenCount, SimpleLayout layout) imp
         .filter(es -> printEmptyToken || es.getValue() > 0).toList();
     
     var orderedTokens = filteredTokens.stream()
-        .sorted(Comparator.comparing(e -> e.getKey() == Token.GOLD)).toList();
+        .sorted(Comparator.comparing(e -> e.getKey().ordinal()))
+        .toList();
 
     var tokenList = IntStream.range(0, orderedTokens.size()).mapToObj(i -> {
       var entry = orderedTokens.get(i);
@@ -67,10 +68,6 @@ public record TokenElement(Token token, int tokenCount, SimpleLayout layout) imp
     }
 
     return tokenList;
-
-
-
-
   }
 
   public static Color colorOf(Token token) {

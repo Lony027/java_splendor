@@ -12,21 +12,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import model.utils.CardLevel;
-import model.utils.CardReader;
-import model.utils.Phase;
-import model.utils.Token;
 import java.nio.file.Path;
 
 public class Board {
-
-  // TODO: if no more cards end game
 
   private final HashMap<CardLevel, LinkedList<Card>> cardDecks;
   private final HashMap<CardLevel, HashMap<Integer, Card>> cards;
   private final TokenCollection bank;
   private final ArrayList<Noble> nobles;
-  // TODO: Maybe a Set<> instead
   private final List<Player> playerList;
 
 
@@ -57,7 +50,7 @@ public class Board {
     return nobles.subList(0, playerCount + 1);
   }
 
-  public static Board factory(int playerCount, Path cardPath, Path noblePath, Phase phase,
+  public static Board create(int playerCount, Path cardPath, Path noblePath, Phase phase,
       List<Player> playersList) {
     Objects.requireNonNull(cardPath);
     Objects.requireNonNull(noblePath);
@@ -80,7 +73,7 @@ public class Board {
         onBoardCards.put(availableLevel, new HashMap<Integer, Card>());
       }
 
-      var tokenBank = createTokenBank(playerCount);
+      var tokenBank = createTokenBank(playerCount, phase);
 
       return new Board(cardStacks, onBoardCards, tokenBank, onBoardNobles, playersList);
 
@@ -202,15 +195,15 @@ public class Board {
     var priceAfterDiscount = player.buyReserved(index);
     bank.addCollection(priceAfterDiscount);
   }
-  
+
   public void playerClaimNoble(Player player, Noble noble) {
     Objects.requireNonNull(player);
     Objects.requireNonNull(noble);
-    
+
     if (!nobles.contains(noble)) {
       throw new IllegalArgumentException("Noble not in board");
     }
-    
+
     player.claimNoble(noble);
     nobles.remove(noble);
   }
@@ -303,11 +296,12 @@ public class Board {
     return card;
   }
 
-  private static TokenCollection createTokenBank(int playerCount) {
+  private static TokenCollection createTokenBank(int playerCount, Phase phase) {
+    boolean gold = phase == Phase.COMPLETE;
     return switch (playerCount) {
-      case 2 -> TokenCollection.createFilled(4);
-      case 3 -> TokenCollection.createFilled(5);
-      case 4 -> TokenCollection.createFilled(7);
+      case 2 -> TokenCollection.createFilled(4, gold);
+      case 3 -> TokenCollection.createFilled(5, gold);
+      case 4 -> TokenCollection.createFilled(7, gold);
       default -> throw new IllegalArgumentException(
           "Not enough, or too much players. This game is supposed to be played by 2 to 4 players ");
     };

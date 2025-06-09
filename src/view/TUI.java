@@ -3,6 +3,7 @@ package view;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,12 +16,12 @@ import java.util.stream.IntStream;
 import controller.Action;
 import model.Board;
 import model.Card;
+import model.CardLevel;
 import model.Noble;
+import model.Phase;
 import model.Player;
+import model.Token;
 import model.TokenCollection;
-import model.utils.CardLevel;
-import model.utils.Phase;
-import model.utils.Token;
 
 public record TUI(Scanner scanner, Phase phase) implements View {
 
@@ -78,17 +79,17 @@ public record TUI(Scanner scanner, Phase phase) implements View {
   }
 
   @Override
-  public List<Player> promptPlayerNames() {
+  public List<String> promptPlayerNames() {
     var playerCount = promptForValidInt(TUI::printAskHowMuchPlayer, i -> i >= 2 && i <= 4);
 
-    var players = new ArrayList<Player>();
+    var players = new ArrayList<String>();
     for (int i = 1; i <= playerCount; i++) {
       String name;
       do {
         TUI.printAskPlayerName(i);
         name = readLine();
       } while (name.isBlank());
-      players.add(new Player(name));
+      players.add(name);
     }
     return players;
   }
@@ -180,12 +181,14 @@ public record TUI(Scanner scanner, Phase phase) implements View {
 
   private static String cardsLeft(Map<CardLevel, Integer> cardsLeft) {
     return cardsLeft.entrySet().stream()
+        .sorted(Comparator.comparing((Map.Entry<CardLevel, Integer> e) -> e.getKey().ordinal()).reversed())
         .map(e -> "Cards left in deck " + e.getKey().name() + ": " + e.getValue())
         .collect(Collectors.joining("\n"));
   }
 
   private static String onBoardCards(Map<CardLevel, Map<Integer, Card>> onBoard) {
     return onBoard.entrySet().stream()
+        .sorted(Comparator.comparing((Map.Entry<CardLevel, Map<Integer, Card>> e) -> e.getKey().ordinal()).reversed())
         .map(el -> "Level : " + el.getKey().name() + "\n" + oneLevelCard(el.getValue()))
         .collect(Collectors.joining("\n"));
   }
@@ -205,7 +208,6 @@ public record TUI(Scanner scanner, Phase phase) implements View {
 
   private String playerInfos(List<Player> playersList, Player activePlayer) {
     var sb = new StringBuilder();
-
     for (var player : playersList) {
       sb.append(player.name()).append(" : \n");
       sb.append("\t - Prestige : ").append(player.prestige()).append("\n");
@@ -213,10 +215,10 @@ public record TUI(Scanner scanner, Phase phase) implements View {
       sb.append("\t - Bonus : ").append(player.bonus()).append("\n");
       if (phase == Phase.COMPLETE) {
         sb.append("\t - Claimed Nobles :\n").append(nobleList(player.playerNobles()))
-            .append("\n\t");
+            .append("\n");
         if (player.equals(activePlayer)) {
           sb.append("\t - Reserved Cards :\n").append(cardList(player.reservedCards()))
-              .append("\n\t");
+              .append("\n");
         }
       }
     }

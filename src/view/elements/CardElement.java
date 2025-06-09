@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.IntStream;
 import model.Card;
-import model.utils.CardLevel;
+import model.CardLevel;
 import view.layout.BatchLayout;
 import view.layout.SimpleLayout;
 
@@ -75,12 +75,14 @@ public record CardElement(Card card, int cardIndex, SimpleLayout layout, boolean
     var elements = new ArrayList<CardElement>();
     var levels = CardLevel.values();
 
-    for (int row = 0; row < levels.length; row++) {
+    var row = 0;
+    for (int i = 0; i < levels.length; i++) {
       // Ensure cardStack are printed is in order (kind of ugly ahah)
-      var level = levels[levels.length - 1 - row];
+      var level = levels[levels.length - 1 - i];
       var cardRow = cards.get(level);
-      if (cardRow == null)
+      if (cardRow == null) {
         continue;
+      }
 
       var col = 0;
       for (var entry : cardRow.entrySet()) {
@@ -92,6 +94,7 @@ public record CardElement(Card card, int cardIndex, SimpleLayout layout, boolean
         }
         col++;
       }
+      row++;
     }
 
     return elements;

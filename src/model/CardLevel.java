@@ -1,4 +1,4 @@
-package model.utils;
+package model;
 
 public enum CardLevel {
   ONE, TWO, THREE;

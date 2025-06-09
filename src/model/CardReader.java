@@ -1,4 +1,4 @@
-package model.utils;
+package model;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,11 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import model.Card;
-import model.Noble;
-import model.TokenCollection;
-
-// two classes can be refactored into one ??
 
 public class CardReader {
 
@@ -41,7 +36,7 @@ public class CardReader {
       var black = Integer.parseInt(values[7]);
 
       var prices = new TokenCollection(Map.of(Token.GREEN, green, Token.BLUE, blue, Token.RED, red,
-          Token.WHITE, white, Token.BLACK, black, Token.GOLD, 0));
+          Token.WHITE, white, Token.BLACK, black));
 
       var levelStack = cards.getOrDefault(cardLevel, new LinkedList<Card>());
       var card = new Card(prestige, prices, tokenColor, cardLevel);
@@ -78,7 +73,7 @@ public class CardReader {
       var name = values[6];
 
       var prices = new TokenCollection(Map.of(Token.GREEN, green, Token.BLUE, blue, Token.RED, red,
-          Token.WHITE, white, Token.BLACK, black, Token.GOLD, 0));
+          Token.WHITE, white, Token.BLACK, black));
 
       nobles.add(new Noble(prestige, prices, name));
     }

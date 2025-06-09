@@ -8,20 +8,22 @@ import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import model.Board;
 import model.GameRuleException;
+import model.Phase;
 import model.Player;
-import model.utils.Phase;
-import model.utils.Token;
+import model.Token;
 import view.PlayerCancelException;
 import view.View;
 
 public record Controller(Phase phase, Board board, View view) {
 
   public static Controller controllerFactory(View view, Phase phase) {
-    var playersList = view.promptPlayerNames();
+    var playersNameList = view.promptPlayerNames();
+    var playersList =
+        playersNameList.stream().map(s -> new Player(s, phase == Phase.COMPLETE)).toList();
     var cardPath = cardsPathByPhase(phase);
     var noblePath = Path.of("src", "data", "nobles_phase_2.csv");
     var board =
-        Board.factory(playersList.size(), cardPath, noblePath, phase, List.copyOf(playersList));
+        Board.create(playersList.size(), cardPath, noblePath, phase, List.copyOf(playersList));
     return new Controller(phase, board, view);
   }
 
@@ -41,24 +43,11 @@ public record Controller(Phase phase, Board board, View view) {
     view.printWinner(winner.get().name());
   }
 
-  // should be in a kind of util
-  private void repeatUntilTrue(BooleanSupplier action) {
-    while (!action.getAsBoolean()) {
-    }
-  }
-  
-
-  // TODO: Custom exception and catch only the custom one
-  // Because we catch exception that should'nt be
   private boolean playTurn(Player player) {
     try {
       parseAndExecuteAction(player);
       return true;
-    } // catch (NumberFormatException e) {
-    // TUI.printWrongFormat();
-    // return false;
-    // }
-    catch (PlayerCancelException p) {
+    } catch (PlayerCancelException p) {
       view.printTurn(player, board);
       return false;
     } catch (GameRuleException e) {
@@ -82,15 +71,7 @@ public record Controller(Phase phase, Board board, View view) {
     }
   }
 
-  // TODO: Create custom exceptions (here and in the model) that will be readable
-  // by the view
-  // (either GUI or TUI)
-
-  // TODO: handle phases in a better way
   private void parseAndExecuteAction(Player player) {
-    // var parts = Arrays.asList(scanner.nextLine().split("\\s+"));
-    // var actionChoosed = parts.get(0);
-
     var actionChoosed = view.promptPlayerAction();
     switch (actionChoosed) {
       case Action.BUY -> {
@@ -105,7 +86,7 @@ public record Controller(Phase phase, Board board, View view) {
       // RESERVE CARD
       case Action.RESERVE -> {
         if (phase == Phase.BASE) {
-          throw new NumberFormatException();
+          throw new IllegalStateException();
         }
         var cardLevelIndex = view.promptCardLevelIndexReserve();
         board.playerReserveCard(player, cardLevelIndex);
@@ -114,7 +95,7 @@ public record Controller(Phase phase, Board board, View view) {
       // BUY RESERVED CARD
       case Action.BUY_RESERVED -> {
         if (phase == Phase.BASE) {
-          throw new NumberFormatException();
+          throw new IllegalStateException();
         }
         if (player.reservedCards().size() == 0) {
           throw new GameRuleException("You have no cards to reserve");
@@ -145,7 +126,6 @@ public record Controller(Phase phase, Board board, View view) {
     board.playerClaimNoble(player, chosenNoble);
   }
 
-  // Should be separated and string part in tui, here should be token colleciton
   private void playerTakeToken(List<Token> tokenList, Player player) {
     switch (tokenList.size()) {
       case 2 -> board.playerTakeTwoTokens(player, tokenList);
@@ -160,6 +140,11 @@ public record Controller(Phase phase, Board board, View view) {
       case Phase.COMPLETE -> "cards_phase_2.csv";
     };
     return Path.of("src", "data", fileName);
+  }
+
+  private static void repeatUntilTrue(BooleanSupplier action) {
+    while (!action.getAsBoolean()) {
+    }
   }
 
 }
