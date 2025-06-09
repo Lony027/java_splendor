@@ -31,8 +31,7 @@ public record NobleElement(Noble noble, SimpleLayout layout) implements Element 
 
     var textX = Element.xOffsetPct(x, width, 85);
     var textY = Element.yOffsetPct(y, height, 15);
-    Text.create("", g2d, Color.WHITE, Integer.toString(noble.prestige()), textX, textY, true, 24,
-        true);
+    Text.create(g2d, Color.WHITE, Integer.toString(noble.prestige()), textX, textY, true, 24, true);
 
     var baseX = Element.xOffsetPct(x, width, 5);
     var baseY = Element.yOffsetPct(y, height, 70);

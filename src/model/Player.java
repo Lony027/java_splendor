@@ -91,8 +91,7 @@ public class Player {
   }
 
   public TokenCollection bonus() {
-//    var bonus = TokenCollection.createEmpty();
-    var bonus = TokenCollection.createFilled(4);
+    var bonus = TokenCollection.createEmpty();
     for (var card : buyedCards) {
       bonus.add(card.bonus(), 1);
     }

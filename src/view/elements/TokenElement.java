@@ -2,13 +2,10 @@ package view.elements;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import model.TokenCollection;
 import model.utils.Token;
 import view.layout.BatchLayout;
@@ -39,7 +36,7 @@ public record TokenElement(Token token, int tokenCount, SimpleLayout layout) imp
     var toCenter = true;
     var textSize = 22;
     var hasStroke = true;
-    Text.create("", g2d, Color.WHITE, Integer.toString(tokenCount), textX, textY, toCenter,
+    Text.create(g2d, Color.WHITE, Integer.toString(tokenCount), textX, textY, toCenter,
         textSize, hasStroke);
 
     return new TokenElement(token, tokenCount, layout);
@@ -51,11 +48,9 @@ public record TokenElement(Token token, int tokenCount, SimpleLayout layout) imp
     Objects.requireNonNull(tokenCollection);
     Objects.requireNonNull(layout);
 
-
     var filteredTokens = tokenCollection.tokens().entrySet().stream()
         .filter(es -> printEmptyToken || es.getValue() > 0).toList();
-
-
+    
     var orderedTokens = filteredTokens.stream()
         .sorted(Comparator.comparing(e -> e.getKey() == Token.GOLD)).toList();
 
@@ -72,6 +67,10 @@ public record TokenElement(Token token, int tokenCount, SimpleLayout layout) imp
     }
 
     return tokenList;
+
+
+
+
   }
 
   public static Color colorOf(Token token) {

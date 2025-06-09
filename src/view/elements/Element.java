@@ -3,8 +3,8 @@ package view.elements;
 import java.awt.Color;
 import view.layout.SimpleLayout;
 
-public sealed interface Element
-    permits Text, Box, Tooltip, Popup, TextBox, TokenElement, NobleElement, CardElement, CardStack, PlayerElement {
+public sealed interface Element permits Text, Box, Popup, TextBox, TokenElement, NobleElement,
+    CardElement, CardStack, PlayerElement {
 
   final static int ROUNDING = 15;
   final static int BORDER_SIZE = 2;

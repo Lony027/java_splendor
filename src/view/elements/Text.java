@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import view.layout.SimpleLayout;
 
-// check at the end if id was used
 public record Text(String id, SimpleLayout layout) implements Element {
 
   private final static Font FONT = new Font("Serif", Font.PLAIN, 24);
@@ -19,8 +18,14 @@ public record Text(String id, SimpleLayout layout) implements Element {
     Objects.requireNonNull(layout);
   }
 
-  public static Text create(String id, Graphics2D g2d, Color textColor, String message, int x,
+  public static Text create(Graphics2D g2d, Color textColor, String message, int x,
       int y, boolean toCenter, int fontSize, boolean stroke) {
+    Objects.requireNonNull(g2d);
+    Objects.requireNonNull(textColor);
+    if (x < 0 || y < 0 || fontSize < 0) {
+      throw new IllegalArgumentException("x, y and fontSize must be positive");
+    }
+    
     var font = font(fontSize);
     g2d.setFont(font);
 
@@ -49,7 +54,7 @@ public record Text(String id, SimpleLayout layout) implements Element {
       g2d.drawString(message, x, y);
     }
 
-    return new Text(id, new SimpleLayout(x, y, width, height));
+    return new Text(message, new SimpleLayout(x, y, width, height));
   }
 
   private static Font font(int size) {

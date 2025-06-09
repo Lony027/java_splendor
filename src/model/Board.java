@@ -70,7 +70,7 @@ public class Board {
       shuffle(cardStacks);
 
       var onBoardNobles = new ArrayList<Noble>();
-      if (phase != Phase.ONE) {
+      if (phase != Phase.BASE) {
         var allNobles = CardReader.loadNobles(noblePath);
         onBoardNobles.addAll(shuffledGoodNumberNobles(allNobles, playerCount));
       }
@@ -158,7 +158,7 @@ public class Board {
 
     var distinctCount = tokens.stream().distinct().count();
     if (distinctCount != 3) {
-      throw new IllegalArgumentException("If you pick three tokens, they must be differents");
+      throw new GameRuleException("If you pick three tokens, they must be differents");
     }
 
     var tokenCollection = TokenCollection.fromList(tokens);
@@ -166,17 +166,17 @@ public class Board {
     p.tokens().addCollection(tokenCollection);
   }
 
-  public void playerGivesBackToken(Player player, TokenCollection tokens) {
+  public void playerGivesBackToken(Player player, List<Token> tokens) {
     Objects.requireNonNull(player);
     Objects.requireNonNull(tokens);
 
-    // TODO: Is this check overkill ?
-    // if (player.tokens().total() + bank.total() > createTokenBank(playerList.size()).total()) {
-    // throw new IllegalArgumentException("Player gave back too much tokens");
-    // }
+    if (player.extraTokensCount() != tokens.size()) {
+      throw new GameRuleException("You gave back to much or not enough tokens");
+    }
 
-    player.tokens().subCollection(tokens);
-    bank.addCollection(tokens);
+    var tokenCollection = TokenCollection.fromList(tokens);
+    player.tokens().subCollection(tokenCollection);
+    bank.addCollection(tokenCollection);
   }
 
   public void buyCard(Player player, Map.Entry<CardLevel, Integer> entry) {

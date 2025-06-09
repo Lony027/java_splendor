@@ -10,17 +10,19 @@ import model.utils.CardLevel;
 import view.layout.BatchLayout;
 import view.layout.SimpleLayout;
 
-public record CardStack(CardLevel cardLevel, SimpleLayout layout)
-    implements Element {
+public record CardStack(CardLevel cardLevel, SimpleLayout layout) implements Element {
 
   public CardStack {
     Objects.requireNonNull(layout);
   }
 
-  public static CardStack create(Graphics2D g2d, CardLevel cardLevel, int cardLeft, SimpleLayout layout) {
+  public static CardStack create(Graphics2D g2d, CardLevel cardLevel, int cardLeft,
+      SimpleLayout layout) {
     Objects.requireNonNull(g2d);
     Objects.requireNonNull(layout);
-    
+    if (cardLeft < 0) {
+      throw new IllegalArgumentException("cardLeft must be positive");
+    }
 
     g2d.setColor(colorByCardLevel(cardLevel));
     g2d.fillRoundRect(layout.x(), layout.y(), layout.width(), layout.height(), ROUNDING, ROUNDING);
@@ -33,7 +35,7 @@ public record CardStack(CardLevel cardLevel, SimpleLayout layout)
 
     var textX = Element.xOffsetPct(prestigeX, prestigeCircleRadius, 50);
     var textY = Element.yOffsetPct(prestigeY, prestigeCircleRadius, 50);
-    Text.create("", g2d, Color.WHITE, Integer.toString(cardLeft), textX, textY, true, 22, true);
+    Text.create(g2d, Color.WHITE, Integer.toString(cardLeft), textX, textY, true, 22, true);
 
     return new CardStack(cardLevel, layout);
   }
@@ -49,7 +51,8 @@ public record CardStack(CardLevel cardLevel, SimpleLayout layout)
     var y = layout.y();
     for (var entry : stackMap.entrySet()) {
       if (entry.getValue() != 0) {
-        CardStack cardStack = create(g2d, entry.getKey(), entry.getValue(), new SimpleLayout(x, y, layout.width(), layout.height()));
+        CardStack cardStack = create(g2d, entry.getKey(), entry.getValue(),
+            new SimpleLayout(x, y, layout.width(), layout.height()));
         list.add(cardStack);
       }
       x += layout.incrementX();

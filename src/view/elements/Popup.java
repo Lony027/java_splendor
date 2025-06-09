@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.IntStream;
 import view.layout.SimpleLayout;
 
@@ -18,11 +17,12 @@ public record Popup(SimpleLayout layout, List<TextBox> options)
 
   public static Popup create(Graphics2D g2d, SimpleLayout layout, List<String> options, boolean toCenter) {
     Objects.requireNonNull(g2d);
+    Objects.requireNonNull(layout);
+    Objects.requireNonNull(options);
     if (options.size() < 1 || options.size() > 6) {
       throw new IllegalArgumentException("Options list must contain at least 1 strings and no more than 6.");
     }
 
-    
     var x = toCenter ? layout.x() - layout.width() / 2 : layout.x();
     var y = toCenter ? layout.y() - layout.height() / 2 : layout.y();
     
@@ -36,13 +36,4 @@ public record Popup(SimpleLayout layout, List<TextBox> options)
 
     return new Popup(layout, textBoxList);
   }
-
-  // créer à partir
-  // liste d'option renvoie l'index de l'option selectionner
-  // dis si cliqué outside
-
-
-
-  // Les texts sont clickables c'est ce que je renvoie dans create Batch!
-  // onclick (pollEvent) // -> si outside renvoyer -1, sinon renvoyer le choix selectionné.
 }

@@ -131,6 +131,7 @@ public class TokenCollection {
 		return tokens.values().stream().mapToInt(Integer::intValue).sum();
 	}
 
+	// NE PSA PRINT TOKEN OR EN BASE
 	@Override
 	public String toString() {
 		return tokens.entrySet().stream().map(entry -> entry.getKey().name() + " : " + entry.getValue())

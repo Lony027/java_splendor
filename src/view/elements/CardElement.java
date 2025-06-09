@@ -34,8 +34,7 @@ public record CardElement(Card card, int cardIndex, SimpleLayout layout, boolean
 
     var textX = Element.xOffsetPct(layout.x(), layout.width(), 15);
     var textY = Element.yOffsetPct(layout.y(), layout.height(), 12);
-    Text.create("", g2d, Color.WHITE, Integer.toString(card.prestige()), textX, textY, true, 24,
-        true);
+    Text.create(g2d, Color.WHITE, Integer.toString(card.prestige()), textX, textY, true, 24, true);
 
     var bonusCircleDiameter = Element.heightPct(layout.height(), 15);
     var bonusX = Element.xOffsetPct(layout.x(), layout.width(), 70);

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
-import model.Noble;
 import view.layout.BatchLayout;
 import view.layout.SimpleLayout;
 
@@ -18,8 +17,8 @@ public record TextBox(String id, SimpleLayout layout) implements Element {
     Objects.requireNonNull(layout);
   }
 
-  public static TextBox create(String id, Graphics2D g2d, Color color, Color textColor, String message,
-      boolean hasBorder, SimpleLayout layout, boolean opaque, boolean toCenter) {
+  public static TextBox create(String id, Graphics2D g2d, Color color, Color textColor,
+      String message, boolean hasBorder, SimpleLayout layout, boolean opaque, boolean toCenter) {
 
     Objects.requireNonNull(g2d);
     Objects.requireNonNull(textColor);
@@ -46,7 +45,7 @@ public record TextBox(String id, SimpleLayout layout) implements Element {
     }
     var textX = toCenter ? x : x + width / 2;
     var textY = toCenter ? y : y + height / 2;
-    Text.create("", g2d, textColor, message, textX, textY, true, 24, false);
+    Text.create(g2d, textColor, message, textX, textY, true, 24, false);
 
     return new TextBox(id, new SimpleLayout(boxX, boxY, width, height));
   }
