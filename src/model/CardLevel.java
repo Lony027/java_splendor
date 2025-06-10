@@ -11,12 +11,12 @@ public enum CardLevel {
       default -> throw new IllegalArgumentException("Unsupported : " + value);
     };
   }
-  
+
   public static int toInt(CardLevel cardLevel) {
     return switch (cardLevel) {
       case ONE -> 1;
       case TWO -> 2;
-      case THREE-> 3;
+      case THREE -> 3;
     };
   }
 }

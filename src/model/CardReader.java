@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class CardReader {
 
   public static HashMap<CardLevel, LinkedList<Card>> loadCards(Path path) throws IOException {
+    Objects.requireNonNull(path);
+
     var lines = Files.readAllLines(path);
 
     if (lines.isEmpty()) {
@@ -49,6 +52,8 @@ public class CardReader {
   }
 
   public static List<Noble> loadNobles(Path path) throws IOException {
+    Objects.requireNonNull(path);
+
     var lines = Files.readAllLines(path);
 
     if (lines.isEmpty()) {
@@ -69,7 +74,7 @@ public class CardReader {
       var green = Integer.parseInt(values[3]);
       var red = Integer.parseInt(values[4]);
       var black = Integer.parseInt(values[5]);
-      
+
       var name = values[6];
 
       var prices = new TokenCollection(Map.of(Token.GREEN, green, Token.BLUE, blue, Token.RED, red,

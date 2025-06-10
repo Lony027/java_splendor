@@ -45,7 +45,7 @@ public record TUI(Scanner scanner, Phase phase) implements View {
       case "take" -> Action.TAKE;
       case "res" -> Action.RESERVE;
       case "buy_res" -> Action.BUY_RESERVED;
-      default -> throw new NumberFormatException();
+      default -> throw new PlayerCancelException();
     };
   }
 
@@ -60,22 +60,26 @@ public record TUI(Scanner scanner, Phase phase) implements View {
   public Entry<CardLevel, Integer> promptCardLevelIndexReserve() {
     var level = promptCardLevel();
     var index = promptForValidInt(
-        () -> System.out.println("Choose the card position (0-2), (-1) for card stack"),
-        i -> i >= -1 || i <= 2);
+        () -> System.out.println("Choose the card position (0-3), (-1) for card stack"),
+        i -> i >= -1 && i <= 3);
     return new AbstractMap.SimpleEntry<CardLevel, Integer>(level, index);
   }
 
   @Override
   public int promptReservedCardIndex() {
     return promptForValidInt(() -> System.out.println("Choose the card position (0-2)"),
-        i -> i >= 0 || i <= 2);
+        i -> i >= 0 && i <= 2);
   }
 
   @Override
   public List<Token> promptTakeTokens() {
     System.out.println("Choose two tokens of the same color or three different");
     var stringTokenList = readWords();
-    return stringTokenList.stream().map(Token::fromString).toList();
+    try {
+      return stringTokenList.stream().map(Token::fromString).toList();
+    } catch (IllegalArgumentException e) {
+      throw new PlayerCancelException();
+    }
   }
 
   @Override
@@ -114,7 +118,7 @@ public record TUI(Scanner scanner, Phase phase) implements View {
         IntStream.range(0, nobles.size()).mapToObj(i -> i + ": " + nobles.get(i)).collect(Collectors
             .joining("\n", "Choose between theses nobles the one you want (type number) :\n", ""));
     var nobleIndex =
-        promptForValidInt(() -> System.out.println(prompt), i -> i >= 0 || i < nobles.size());
+        promptForValidInt(() -> System.out.println(prompt), i -> i >= 0 && i < nobles.size());
     return nobles.get(nobleIndex);
   }
 
@@ -156,14 +160,14 @@ public record TUI(Scanner scanner, Phase phase) implements View {
       return CardLevel.ONE;
     } else {
       var cardLevel = promptForValidInt(() -> System.out.println("Choose card level [1-3]"),
-          i -> i >= 1 || i <= 3);
+          i -> i >= 1 && i <= 3);
       return CardLevel.fromInt(cardLevel);
     }
   }
 
   private int promptCardIndex() {
     return promptForValidInt(() -> System.out.println("Choose the card position (0-3)"),
-        i -> i >= 0 || i <= 3);
+        i -> i >= 0 && i <= 3);
   }
 
   private String playerAction(Player player) {
@@ -214,10 +218,10 @@ public record TUI(Scanner scanner, Phase phase) implements View {
       sb.append("\t - Gems : ").append(player.tokens()).append("\n");
       sb.append("\t - Bonus : ").append(player.bonus()).append("\n");
       if (phase == Phase.COMPLETE) {
-        sb.append("\t - Claimed Nobles :\n").append(nobleList(player.playerNobles()))
+        sb.append("\t - Claimed Nobles :\n\t\t").append(nobleList(player.playerNobles()))
             .append("\n");
         if (player.equals(activePlayer)) {
-          sb.append("\t - Reserved Cards :\n").append(cardList(player.reservedCards()))
+          sb.append("\t - Reserved Cards :\n\t\t").append(cardList(player.reservedCards()))
               .append("\n");
         }
       }

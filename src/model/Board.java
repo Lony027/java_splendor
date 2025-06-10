@@ -39,7 +39,6 @@ public class Board {
     this.bank = bank;
     this.nobles = nobles;
     this.playerList = playerList;
-    // TODO: Do this in the factory ??
     for (var cardLevel : cardDecks.keySet()) {
       drawFourCards(cardLevel);
     }
@@ -54,6 +53,7 @@ public class Board {
       List<Player> playersList) {
     Objects.requireNonNull(cardPath);
     Objects.requireNonNull(noblePath);
+    Objects.requireNonNull(playersList);
     if (playerCount < 2 || playerCount > 4) {
       throw new IllegalArgumentException("Player count must be between 2 and 4 players");
     }
@@ -144,8 +144,9 @@ public class Board {
   public void playerTakeThreeTokens(Player p, List<Token> tokens) {
     Objects.requireNonNull(tokens);
     Objects.requireNonNull(p);
-    
-    // var tokenOnBoardCount = bank.tokens().entrySet().stream().filter(t -> t.getKey() != Token.GOLD).mapToInt(Map.Entry::getValue).sum();
+
+    // var tokenOnBoardCount = bank.tokens().entrySet().stream().filter(t -> t.getKey() !=
+    // Token.GOLD).mapToInt(Map.Entry::getValue).sum();
     if (tokens.size() != 3) {
       throw new IllegalArgumentException("Tokens list must contain only three tokens");
     }
@@ -191,7 +192,10 @@ public class Board {
 
   public void buyReserved(Player player, int index) {
     Objects.requireNonNull(player);
-    Objects.checkIndex(index, 3);
+//    Objects.checkIndex(index, 3);
+    if (index < 0 || index >= 3) {
+      throw new GameRuleException("Choose a correct index");
+    }
 
     var priceAfterDiscount = player.buyReserved(index);
     bank.addCollection(priceAfterDiscount);
@@ -245,7 +249,6 @@ public class Board {
       return winners.stream().min(Comparator.comparingInt(Player::playerCardsSize));
     }
 
-    // TODO:
     // return playersList.stream().filter(p -> p.prestige() >= 15)
     // .collect(Collectors.groupingBy(Player::prestige, Collectors.toList())).entrySet().stream()
     // .max(Map.Entry.comparingByKey()).map(Map.Entry::getValue)
@@ -259,7 +262,6 @@ public class Board {
     if (nullCardIndex.isEmpty()) {
       throw new IllegalArgumentException("Cannot draw a card, the level is already filled");
     }
-    // TODO: Manage when empty !
     var topCard = cardDecks.get(cardLevel).pop();
     cards.get(cardLevel).put(nullCardIndex.getAsInt(), topCard);
   }

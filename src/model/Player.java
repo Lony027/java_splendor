@@ -1,8 +1,10 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Player {
 
@@ -16,7 +18,7 @@ public class Player {
     Objects.requireNonNull(name);
 
     this.name = name;
-    this.tokens = TokenCollection.createEmpty(hasGold);
+    this.tokens = TokenCollection.createEmpty(hasGold);    
     this.buyedCards = new ArrayList<Card>();
     this.reservedCards = new ArrayList<Card>();
     this.nobles = new ArrayList<Noble>();
@@ -53,7 +55,11 @@ public class Player {
   }
 
   public TokenCollection buyReserved(int index) {
-    Objects.checkIndex(index, reservedCards.size());
+//    Objects.checkIndex(index, reservedCards.size());
+    if (index < 0 || index >= reservedCards.size()) {
+      throw new GameRuleException("Choose a correct index");
+    }
+    
     var card = reservedCards.get(index);
     var cardPrice = buy(card);
     reservedCards.remove(index);

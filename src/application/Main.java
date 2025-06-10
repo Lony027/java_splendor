@@ -1,4 +1,4 @@
-package controller.application;
+package application;
 
 import java.awt.Color;
 import com.github.forax.zen.Application;
@@ -29,7 +29,7 @@ public class Main {
 
   }
 
-  public static void startGame(boolean isTerminal, Phase phase) {
+  private static void startGame(boolean isTerminal, Phase phase) {
     if (isTerminal) {
       View tui = new TUI(phase);
       var controller = Controller.controllerFactory(tui, phase);

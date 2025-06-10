@@ -225,7 +225,7 @@ public final class GUI implements View {
       Text.create(g2d, Color.LIGHT_GRAY, "Give back " + extra + " token(s)",
           screenScaling.offsetX(50), screenScaling.offsetY(25), true, 22, false);
       clickables.addAll(TokenElement.createBatch(g2d, player.tokens(), tokenCollectionBackLayout,
-          false, true, true)); //
+          false, true, true));
     });
     render(frame);
     return collectToken((tokenList -> tokenList.size() < extra));
@@ -240,7 +240,7 @@ public final class GUI implements View {
       Box.create(g2d, fullLayout, true, Color.DARK_GRAY);
       Text.create(g2d, Color.LIGHT_GRAY, "Choose a noble", screenScaling.offsetX(50),
           screenScaling.offsetY(25), true, 22, false);
-      clickables.addAll(NobleElement.createBatch(g2d, nobles, chooseNobleLayout)); // player.tokens()
+      clickables.addAll(NobleElement.createBatch(g2d, nobles, chooseNobleLayout));
     });
     render(frame);
 

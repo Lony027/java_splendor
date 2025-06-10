@@ -4,6 +4,7 @@ package controller;
 import java.nio.file.Path;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import model.Board;
@@ -17,6 +18,8 @@ import view.View;
 public record Controller(Phase phase, Board board, View view) {
 
   public static Controller controllerFactory(View view, Phase phase) {
+    Objects.requireNonNull(view);
+
     var playersNameList = view.promptPlayerNames();
     var playersList =
         playersNameList.stream().map(s -> new Player(s, phase == Phase.COMPLETE)).toList();
@@ -130,7 +133,7 @@ public record Controller(Phase phase, Board board, View view) {
     switch (tokenList.size()) {
       case 2 -> board.playerTakeTwoTokens(player, tokenList);
       case 3 -> board.playerTakeThreeTokens(player, tokenList);
-      default -> throw new NumberFormatException();
+      default -> throw new GameRuleException("You must choose 2 or 3 tokens");
     }
   }
 
