@@ -82,6 +82,7 @@ public final class GUI implements View {
           RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
       if (screenScaling.scalingChanged()) {
         screenScaling = ScreenScaling.create(context);
+        assignLayout();
       }
       toRender.accept(g2d);
     });

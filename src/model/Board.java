@@ -122,7 +122,6 @@ public class Board {
     return nobles.stream().filter(n -> player.canClaimNoble(n)).toList();
   }
 
-  // TODO: Do we need to check if there's any gold token in the list ?
   public void playerTakeTwoTokens(Player p, List<Token> tokens) {
     Objects.requireNonNull(p);
     Objects.requireNonNull(tokens);
@@ -131,12 +130,12 @@ public class Board {
     }
 
     if (!tokens.get(0).equals(tokens.get(1))) {
-      throw new IllegalArgumentException("If you pick two tokens, they must be the same color");
+      throw new GameRuleException("If you pick two tokens, they must be the same color");
     }
 
     Token tokenColor = tokens.get(0);
     if (bank.tokensByColor(tokenColor) < 4) {
-      throw new IllegalArgumentException("Not enough token to pick two");
+      throw new GameRuleException("Not enough token to pick two");
     }
     bank.sub(tokenColor, 2);
     p.tokens().addCollection(TokenCollection.fromList(tokens));
@@ -145,6 +144,8 @@ public class Board {
   public void playerTakeThreeTokens(Player p, List<Token> tokens) {
     Objects.requireNonNull(tokens);
     Objects.requireNonNull(p);
+    
+    // var tokenOnBoardCount = bank.tokens().entrySet().stream().filter(t -> t.getKey() != Token.GOLD).mapToInt(Map.Entry::getValue).sum();
     if (tokens.size() != 3) {
       throw new IllegalArgumentException("Tokens list must contain only three tokens");
     }
